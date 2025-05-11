@@ -234,7 +234,7 @@ MonoBehaviour:
   gameOverPanel: {fileID: 65302938}
   bgGen: {fileID: 953617095}
   ball: {fileID: 1988623895}
-  startingLives: 3
+  startingLives: 4
 --- !u!4 &161924290
 Transform:
   m_ObjectHideFlags: 0
@@ -1155,9 +1155,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   brickPrefab: {fileID: 5254347089339129889, guid: 6492be88c7f86e3438b8f91c251e419a, type: 3}
-  brickParent: {fileID: 243537379}
   rows: 5
   columns: 10
+  spacing: 0.1
+  brickParent: {fileID: 243537379}
+  brickWidth: 1
+  brickHeight: 0.5
+  topOffset: 2
 --- !u!1 &1131809612
 GameObject:
   m_ObjectHideFlags: 0
