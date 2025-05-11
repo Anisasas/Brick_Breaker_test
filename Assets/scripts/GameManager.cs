@@ -13,7 +13,11 @@ public class GameManager : MonoBehaviour
     public BackgroundGenerator bgGen;
     public Ball ball;
 
-    int score, lives, level;
+    public int startingLives = 3; // Editable in Unity
+    private int score, lives, level;
+    private bool lifeLostInProgress = false;
+    private bool scoreAddedThisFrame = false;
+    private bool levelCompleteTriggered = false; // New flag to prevent double triggers
 
     void Awake()
     {
@@ -23,80 +27,95 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        if (bgGen == null) 
-            bgGen = FindObjectOfType<BackgroundGenerator>();
-        if (ball == null)  
-            ball  = FindObjectOfType<Ball>();
-
-        if (gameOverPanel == null)
-        {
-            gameOverPanel = GameObject.Find("GameOverPanel");
-            if (gameOverPanel == null)
-                Debug.LogError("GameManager: No GameOverPanel assigned or found in scene. Rename your panel to 'GameOverPanel' or assign it in the Inspector.");
-        }
+        if (bgGen == null) bgGen = FindObjectOfType<BackgroundGenerator>();
+        if (ball == null) ball = FindObjectOfType<Ball>();
 
         score = 0;
-        lives = 3;
+        lives = startingLives;
         level = 1;
         Time.timeScale = 1;
-
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(false);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
 
         UpdateUI();
         bgGen.GenerateBricks();
     }
 
+    void Update()
+    {
+        lifeLostInProgress = false;
+        scoreAddedThisFrame = false;
+
+        // Check for level complete
+        if (!levelCompleteTriggered && FindObjectsOfType<Brick>().Length == 0)
+        {
+            levelCompleteTriggered = true;
+            Invoke(nameof(NextLevel), 1f); // Delay for effect
+        }
+    }
 
     void UpdateUI()
     {
         scoreText.text = $"Score: {score}";
-        livesText.text  = $"Lives: {lives}";
-        levelText.text  = $"Level: {level}";
+        livesText.text = $"Lives: {lives}";
+        levelText.text = $"Level: {level}";
     }
 
     public void AddScore(int pts)
     {
+        if (scoreAddedThisFrame) return;
+
+        scoreAddedThisFrame = true;
         score += pts;
         UpdateUI();
     }
 
     public void LoseLife()
     {
-        if (lives <= 0) return;        // already game over
+        if (lifeLostInProgress) return;
+        lifeLostInProgress = true;
+
+        if (lives <= 0) return;
 
         lives--;
-        if (lives < 0) lives = 0;      // clamp
-
+        if (lives < 0) lives = 0;
         UpdateUI();
 
         if (lives == 0)
         {
-            GameOver();
+            if (gameOverPanel != null) gameOverPanel.SetActive(true);
+            Time.timeScale = 0;
         }
         else
         {
             ball.ResetBall();
-            bgGen.GenerateBricks();
         }
     }
 
-    void GameOver()
+    public void NextLevel()
     {
-        gameOverPanel.SetActive(true);
-        Time.timeScale = 0;
+        level++;
+        levelCompleteTriggered = false;
+        UpdateUI();
+        bgGen.GenerateBricks();
+        ball.ResetBall();
     }
 
     public void RestartGame()
     {
         score = 0;
-        lives = 3;
+        lives = startingLives;
         level = 1;
+        levelCompleteTriggered = false;
         Time.timeScale = 1;
-        gameOverPanel.SetActive(false);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
 
         UpdateUI();
-        ball.ResetBall();
         bgGen.GenerateBricks();
+        ball.ResetBall();
+    }
+
+    public int GetLevel()
+    {
+        return level;
     }
 }
