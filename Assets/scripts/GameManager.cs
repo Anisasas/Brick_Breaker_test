@@ -1,34 +1,58 @@
 using UnityEngine;
-using TMPro;  // Include this namespace for TextMeshPro
-using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    public int lives = 3;
-    public int score;
-    public TMP_Text livesText;  // Change to TMP_Text for TextMeshPro
-    public TMP_Text scoreText;  // Change to TMP_Text for TextMeshPro
+    public static GameManager Instance { get; private set; }
+
+    public TMP_Text scoreText;
+    public TMP_Text livesText;
+    public TMP_Text levelText;
+    public GameObject gameOverPanel;
+
+    public BackgroundGenerator bgGen;
     public Ball ball;
-    public Transform paddle;
+
+    int score, lives, level;
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
     void Start()
     {
+        if (bgGen == null) 
+            bgGen = FindObjectOfType<BackgroundGenerator>();
+        if (ball == null)  
+            ball  = FindObjectOfType<Ball>();
+
+        if (gameOverPanel == null)
+        {
+            gameOverPanel = GameObject.Find("GameOverPanel");
+            if (gameOverPanel == null)
+                Debug.LogError("GameManager: No GameOverPanel assigned or found in scene. Rename your panel to 'GameOverPanel' or assign it in the Inspector.");
+        }
+
+        score = 0;
+        lives = 3;
+        level = 1;
+        Time.timeScale = 1;
+
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false);
+
         UpdateUI();
+        bgGen.GenerateBricks();
     }
 
-    public void LoseLife()
+
+    void UpdateUI()
     {
-        lives--;
-        UpdateUI();
-        if (lives <= 0)
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
-        else
-        {
-            ball.ResetBall();
-            paddle.position = new Vector3(0f, -4f, 0f);
-        }
+        scoreText.text = $"Score: {score}";
+        livesText.text  = $"Lives: {lives}";
+        levelText.text  = $"Level: {level}";
     }
 
     public void AddScore(int pts)
@@ -37,16 +61,42 @@ public class GameManager : MonoBehaviour
         UpdateUI();
     }
 
-    void UpdateUI()
+    public void LoseLife()
     {
-        if (livesText != null && scoreText != null)  // Safe check
+        if (lives <= 0) return;        // already game over
+
+        lives--;
+        if (lives < 0) lives = 0;      // clamp
+
+        UpdateUI();
+
+        if (lives == 0)
         {
-            livesText.text = "Lives: " + lives;
-            scoreText.text = "Score: " + score;
+            GameOver();
         }
         else
         {
-            Debug.LogError("UI Text references are not assigned! Please assign LivesText and ScoreText in the Inspector.");
+            ball.ResetBall();
+            bgGen.GenerateBricks();
         }
+    }
+
+    void GameOver()
+    {
+        gameOverPanel.SetActive(true);
+        Time.timeScale = 0;
+    }
+
+    public void RestartGame()
+    {
+        score = 0;
+        lives = 3;
+        level = 1;
+        Time.timeScale = 1;
+        gameOverPanel.SetActive(false);
+
+        UpdateUI();
+        ball.ResetBall();
+        bgGen.GenerateBricks();
     }
 }

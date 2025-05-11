@@ -2,24 +2,24 @@ using UnityEngine;
 
 public class Brick : MonoBehaviour
 {
-    public int hits = 1; // Number of hits before the brick is destroyed
-    public int points = 1; // 1 point per brick hit
-    public GameManager gm;
+    private int hitPoints;
 
-    void Start()
+    public void SetHitPoints(int points)
     {
-        if (gm == null)
-        {
-            gm = FindObjectOfType<GameManager>();
-        }
+        hitPoints = points;
     }
 
-    void OnCollisionEnter2D(Collision2D col)
+    public int GetHitPoints()
     {
-        hits--;
-        if (hits <= 0)
+        return hitPoints;
+    }
+
+    private void OnCollisionEnter2D(Collision2D col)
+    {
+        // Handle collision logic
+        hitPoints--;
+        if (hitPoints <= 0)
         {
-            gm.AddScore(points);
             Destroy(gameObject);
         }
     }

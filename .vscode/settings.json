@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Brick Breaker test.sln"
+    "dotnet.defaultSolution": "Brick_Breaker_test.sln"
 }
